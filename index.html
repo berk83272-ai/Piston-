@@ -1,1 +1,542 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Сердце моё — Kalbim</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
+:root{
+  --rose:    #c0394b;
+  --rosedark:#7a1a26;
+  --gold:    #d4a847;
+  --cream:   #f5e8d8;
+  --ink:     #1a0a0e;
+  --blush:   rgba(192,57,75,0.12);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--ink);
+  color:var(--cream);
+  font-family:'Cormorant Garamond',serif;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* ── CUSTOM CURSOR ── */
+#cursor{
+  position:fixed;width:10px;height:10px;
+  background:var(--rose);border-radius:50%;
+  pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);
+  transition:transform .1s, opacity .2s;
+  mix-blend-mode:screen;
+}
+#cursor-trail{
+  position:fixed;width:30px;height:30px;
+  border:1px solid rgba(192,57,75,0.4);border-radius:50%;
+  pointer-events:none;z-index:9998;
+  transform:translate(-50%,-50%);
+  transition:left .08s ease,top .08s ease;
+}
+
+/* ── CANVAS PETALS ── */
+#petalCanvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:0;
+}
+
+/* ── HERO ── */
+#hero{
+  position:relative;min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;z-index:1;
+  padding:60px 24px;
+}
+
+.hero-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(122,26,38,0.35) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 20% 80%, rgba(192,57,75,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 80% 20%, rgba(212,168,71,0.07) 0%, transparent 60%);
+}
+
+.hero-ornament{
+  font-family:'Great Vibes',cursive;
+  font-size:clamp(14px,2vw,18px);
+  color:var(--gold);
+  letter-spacing:4px;
+  opacity:.7;
+  margin-bottom:16px;
+  animation:fadeUp 1.2s ease both;
+}
+
+.hero-ru{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(42px,9vw,110px);
+  font-weight:700;
+  font-style:italic;
+  line-height:1;
+  color:#fff;
+  text-shadow:0 0 60px rgba(192,57,75,0.5), 0 4px 30px rgba(0,0,0,0.8);
+  animation:fadeUp 1.4s ease both;
+  animation-delay:.2s;
+}
+
+.hero-ru span{color:var(--rose)}
+
+.hero-tr{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(15px,2.5vw,22px);
+  font-weight:300;
+  color:rgba(245,232,216,0.6);
+  letter-spacing:6px;
+  text-transform:uppercase;
+  margin-top:12px;
+  animation:fadeUp 1.4s ease both;
+  animation-delay:.4s;
+}
+
+.hero-divider{
+  width:180px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  margin:32px auto;
+  animation:fadeUp 1.4s ease both;
+  animation-delay:.5s;
+}
+.hero-divider::before,.hero-divider::after{
+  content:'✦';
+  display:block;text-align:center;
+  color:var(--gold);font-size:12px;
+  margin-top:-8px;
+}
+
+.hero-poem{
+  max-width:560px;
+  font-size:clamp(17px,2.2vw,22px);
+  font-style:italic;
+  line-height:1.9;
+  color:rgba(245,232,216,0.85);
+  animation:fadeUp 1.6s ease both;
+  animation-delay:.6s;
+}
+
+.scroll-hint{
+  position:absolute;bottom:40px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  animation:bounce 2s ease-in-out infinite;
+  opacity:.5;
+}
+.scroll-hint span{font-size:11px;letter-spacing:3px;color:var(--gold)}
+.scroll-hint::after{content:'↓';font-size:20px;color:var(--gold)}
+
+/* ── SECTIONS ── */
+section{
+  position:relative;z-index:1;
+  padding:100px 24px;
+}
+
+/* ── QUOTE SECTION ── */
+.quotes-section{
+  background:linear-gradient(180deg,var(--ink) 0%,#110409 50%,var(--ink) 100%);
+}
+
+.section-label{
+  text-align:center;
+  font-family:'Great Vibes',cursive;
+  font-size:clamp(36px,6vw,56px);
+  color:var(--rose);
+  margin-bottom:64px;
+  opacity:.9;
+}
+
+.quotes-grid{
+  max-width:1100px;margin:0 auto;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:32px;
+}
+
+.quote-card{
+  background:linear-gradient(135deg,rgba(192,57,75,0.08),rgba(212,168,71,0.04));
+  border:1px solid rgba(192,57,75,0.2);
+  padding:40px 32px;
+  position:relative;
+  transition:transform .4s ease, border-color .4s;
+  cursor:default;
+}
+.quote-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(192,57,75,0.06),transparent);
+  opacity:0;transition:opacity .4s;
+}
+.quote-card:hover{transform:translateY(-6px);border-color:rgba(192,57,75,0.5)}
+.quote-card:hover::before{opacity:1}
+
+.quote-ru{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(19px,2.2vw,24px);
+  font-weight:700;
+  font-style:italic;
+  color:#fff;
+  line-height:1.6;
+  margin-bottom:16px;
+}
+.quote-tr{
+  font-size:clamp(13px,1.4vw,16px);
+  color:rgba(245,232,216,0.55);
+  font-style:italic;
+  line-height:1.7;
+  border-top:1px solid rgba(192,57,75,0.2);
+  padding-top:14px;
+  margin-top:14px;
+}
+.quote-mark{
+  font-family:'Great Vibes',cursive;
+  font-size:80px;line-height:.5;
+  color:rgba(192,57,75,0.25);
+  float:left;margin-right:8px;margin-top:8px;
+}
+
+/* ── LOVE LETTER ── */
+.letter-section{
+  background:radial-gradient(ellipse 70% 70% at 50% 50%,rgba(122,26,38,0.18) 0%,transparent 70%);
+}
+
+.letter-wrap{
+  max-width:680px;margin:0 auto;
+  background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(192,57,75,0.04));
+  border:1px solid rgba(212,168,71,0.2);
+  padding:clamp(32px,5vw,72px);
+  position:relative;
+}
+.letter-wrap::before{
+  content:'';
+  position:absolute;inset:6px;
+  border:1px solid rgba(212,168,71,0.08);
+  pointer-events:none;
+}
+
+.letter-date{
+  font-family:'Great Vibes',cursive;
+  font-size:22px;color:var(--gold);
+  opacity:.7;margin-bottom:28px;text-align:right;
+}
+
+.letter-body{
+  font-size:clamp(16px,1.8vw,20px);
+  line-height:2;
+  color:rgba(245,232,216,0.85);
+}
+.letter-body p{margin-bottom:20px}
+
+.letter-bold-ru{
+  font-family:'Playfair Display',serif;
+  font-weight:700;font-style:italic;
+  font-size:1.15em;
+  color:#fff;
+  text-shadow:0 0 20px rgba(192,57,75,0.4);
+}
+
+.letter-sig{
+  font-family:'Great Vibes',cursive;
+  font-size:clamp(28px,4vw,40px);
+  color:var(--rose);
+  text-align:right;
+  margin-top:32px;
+}
+
+/* ── STARS SECTION ── */
+.stars-section{
+  text-align:center;
+  background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(26,10,14,0.9),var(--ink));
+  padding:120px 24px;
+}
+
+.stars-ru{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(28px,5vw,64px);
+  font-weight:700;font-style:italic;
+  color:#fff;
+  line-height:1.3;
+  margin-bottom:24px;
+  text-shadow:0 0 40px rgba(192,57,75,0.4);
+}
+.stars-ru strong{color:var(--rose)}
+
+.stars-sub{
+  font-size:clamp(15px,1.8vw,20px);
+  color:rgba(245,232,216,0.5);
+  font-style:italic;
+  letter-spacing:2px;
+}
+
+/* ── FINAL ── */
+.final-section{
+  text-align:center;
+  padding:120px 24px 160px;
+}
+.final-ru{
+  font-family:'Great Vibes',cursive;
+  font-size:clamp(48px,10vw,120px);
+  color:var(--rose);
+  text-shadow:0 0 60px rgba(192,57,75,0.5);
+  animation:heartbeat 2.5s ease-in-out infinite;
+}
+.final-heart{
+  font-size:clamp(40px,7vw,80px);
+  animation:heartbeat 1.4s ease-in-out infinite;
+  display:block;margin-bottom:16px;
+}
+.final-tr{
+  font-size:clamp(13px,1.5vw,17px);
+  color:rgba(245,232,216,0.4);
+  letter-spacing:5px;text-transform:uppercase;
+  margin-top:16px;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(30px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes bounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(8px)}
+}
+@keyframes heartbeat{
+  0%,100%{transform:scale(1)}
+  14%{transform:scale(1.08)}
+  28%{transform:scale(1)}
+  42%{transform:scale(1.05)}
+  56%{transform:scale(1)}
+}
+
+/* scroll reveal */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .9s ease,transform .9s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--ink)}
+::-webkit-scrollbar-thumb{background:var(--rosedark)}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-trail"></div>
+<canvas id="petalCanvas"></canvas>
+
+<!-- ══ HERO ══════════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-ornament">✦ &nbsp; любовь &nbsp; ✦</div>
+  <div class="hero-ru">Ты моё<br><span>всё</span></div>
+  <div class="hero-tr">Sen benim her şeyimsin</div>
+  <div class="hero-divider"></div>
+  <div class="hero-poem">
+    Bazı şeyler sözcüklere sığmaz —<br>
+    sadece kalp bilir.<br>
+    <em>Некоторые чувства больше слов.</em>
+  </div>
+  <div class="scroll-hint"><span>keşfet</span></div>
+</section>
+
+<!-- ══ QUOTES ════════════════════════════════════ -->
+<section class="quotes-section">
+  <div class="section-label">Слова любви</div>
+
+  <div class="quotes-grid">
+
+    <div class="quote-card reveal">
+      <span class="quote-mark">"</span>
+      <div class="quote-ru">Я думаю о тебе каждую секунду.</div>
+      <div class="quote-tr">Her saniye seni düşünüyorum.<br>Zihnimin her köşesinde senin sesin var.</div>
+    </div>
+
+    <div class="quote-card reveal">
+      <span class="quote-mark">"</span>
+      <div class="quote-ru">Ты — свет в моей темноте.</div>
+      <div class="quote-tr">Sen karanlığımdaki ışıksın.<br>Kaybolduğumda beni sen buluyorsun.</div>
+    </div>
+
+    <div class="quote-card reveal">
+      <span class="quote-mark">"</span>
+      <div class="quote-ru">Моё сердце бьётся только для тебя.</div>
+      <div class="quote-tr">Kalbim yalnızca senin için atıyor.<br>Her atışında adını fısıldıyor.</div>
+    </div>
+
+    <div class="quote-card reveal">
+      <span class="quote-mark">"</span>
+      <div class="quote-ru">С тобой мир становится красивее.</div>
+      <div class="quote-tr">Seninle dünya daha güzel oluyor.<br>Renklerin daha parlak, havanın daha tatlı.</div>
+    </div>
+
+    <div class="quote-card reveal">
+      <span class="quote-mark">"</span>
+      <div class="quote-ru">Ты моя самая лучшая мечта.</div>
+      <div class="quote-tr">Sen benim en güzel rüyamsın.<br>Ve uyanmak istemiyorum.</div>
+    </div>
+
+    <div class="quote-card reveal">
+      <span class="quote-mark">"</span>
+      <div class="quote-ru">Я люблю тебя без конца.</div>
+      <div class="quote-tr">Seni sonsuzca seviyorum.<br>Bu sevgi evrenin son nefesine dek sürecek.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ LETTER ═════════════════════════════════════ -->
+<section class="letter-section">
+  <div class="section-label">Письмо сердца</div>
+  <div class="letter-wrap reveal">
+    <div class="letter-date">gecenin üçü, yıldızlar uyanık…</div>
+    <div class="letter-body">
+      <p>
+        Sana yazmak istiyorum çünkü sözcükler bazen
+        sessizlikten daha dürüst oluyor.
+        <span class="letter-bold-ru">Ты единственная, о ком я думаю.</span>
+        — Yalnızca sen var aklımda.
+      </p>
+      <p>
+        Sabahları gözlerimi açtığımda ilk düşünce sensin.
+        <span class="letter-bold-ru">Твоя улыбка — моё утреннее солнце.</span>
+        Gülüşün, benim sabah güneşim.
+      </p>
+      <p>
+        Zaman zaman kelimeler yetersiz kalıyor.
+        Ama yine de söylemek istiyorum —
+        <span class="letter-bold-ru">Я никогда тебя не забуду.</span>
+        Seni asla unutmayacağım.
+        Hiçbir zaman.
+      </p>
+      <p>
+        Sen benim için ne demek biliyor musun?
+        <span class="letter-bold-ru">Ты — мой весь мир.</span>
+        Sen benim tüm dünyamsın.
+        Ve bu dünya seninle anlam kazanıyor.
+      </p>
+    </div>
+    <div class="letter-sig">Твой навсегда ♡</div>
+  </div>
+</section>
+
+<!-- ══ STARS ══════════════════════════════════════ -->
+<section class="stars-section reveal">
+  <div class="stars-ru">
+    <strong>Я выбираю тебя</strong><br>
+    каждый день, каждый час.
+  </div>
+  <div style="color:var(--gold);font-size:28px;margin:24px 0;letter-spacing:8px">✦ ✦ ✦</div>
+  <div class="stars-sub">Her gün, her saat — seni seçiyorum.</div>
+</section>
+
+<!-- ══ FINAL ══════════════════════════════════════ -->
+<section class="final-section">
+  <span class="final-heart">🌹</span>
+  <div class="final-ru">Люблю тебя</div>
+  <div class="final-tr">seni seviyorum &nbsp;·&nbsp; i love you &nbsp;·&nbsp; я тебя люблю</div>
+</section>
+
+<script>
+// ── CURSOR ──────────────────────────────────────────────────
+const cur = document.getElementById('cursor');
+const trail = document.getElementById('cursor-trail');
+let mx=0,my=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+  trail.style.left=mx+'px';trail.style.top=my+'px';
+});
+
+// ── PETALS ──────────────────────────────────────────────────
+const canvas=document.getElementById('petalCanvas');
+const ctx=canvas.getContext('2d');
+let W,H;
+
+function resizeCanvas(){
+  W=canvas.width=window.innerWidth;
+  H=canvas.height=window.innerHeight;
+}
+window.addEventListener('resize',resizeCanvas);
+resizeCanvas();
+
+const PETAL_COUNT = 38;
+const petals=[];
+
+function randRange(a,b){return a+Math.random()*(b-a)}
+
+class Petal{
+  constructor(){this.reset(true)}
+  reset(init){
+    this.x = randRange(0,W);
+    this.y = init ? randRange(-H,H) : randRange(-120,-20);
+    this.size = randRange(7,18);
+    this.opacity = randRange(0.3,0.75);
+    this.speedY = randRange(0.6,1.8);
+    this.speedX = randRange(-0.5,0.5);
+    this.spin = randRange(-0.03,0.03);
+    this.angle = randRange(0,Math.PI*2);
+    this.sway = randRange(0.3,1.2);
+    this.swaySpeed = randRange(0.01,0.03);
+    this.swayT = randRange(0,Math.PI*2);
+    // color: deep rose to blush
+    const h=randRange(340,360), s=randRange(55,85), l=randRange(55,78);
+    this.color=`hsla(${h},${s}%,${l}%,`;
+  }
+  update(){
+    this.swayT += this.swaySpeed;
+    this.x += this.speedX + Math.sin(this.swayT)*this.sway;
+    this.y += this.speedY;
+    this.angle += this.spin;
+    if(this.y > H+30) this.reset(false);
+  }
+  draw(){
+    ctx.save();
+    ctx.translate(this.x,this.y);
+    ctx.rotate(this.angle);
+    ctx.globalAlpha = this.opacity;
+    // draw petal shape
+    ctx.beginPath();
+    const s=this.size;
+    ctx.moveTo(0,-s);
+    ctx.bezierCurveTo(s*0.6,-s*0.5, s*0.8,s*0.3, 0,s*0.6);
+    ctx.bezierCurveTo(-s*0.8,s*0.3, -s*0.6,-s*0.5, 0,-s);
+    ctx.closePath();
+    const grad=ctx.createRadialGradient(0,-s*0.2,0,0,0,s);
+    grad.addColorStop(0,this.color+'1)');
+    grad.addColorStop(1,this.color+'0.3)');
+    ctx.fillStyle=grad;
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+for(let i=0;i<PETAL_COUNT;i++) petals.push(new Petal());
+
+function animatePetals(){
+  ctx.clearRect(0,0,W,H);
+  petals.forEach(p=>{p.update();p.draw();});
+  requestAnimationFrame(animatePetals);
+}
+animatePetals();
+
+// ── SCROLL REVEAL ────────────────────────────────────────────
+const reveals=document.querySelectorAll('.reveal');
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting) e.target.classList.add('visible');
+  });
+},{threshold:0.12});
+reveals.forEach(el=>io.observe(el));
+</script>
+</body>
+  </html>
+  
